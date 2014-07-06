@@ -1,67 +1,76 @@
-<!DOCTYPE html>
 <html>
 <head>
-<title>2D fractal terrain</title>
-<link rel="stylesheet" type="text/css" href="css/style.css">
-<script src="js/jquery-2.1.1.js"></script>
-<script>
-  var array_size = Math.pow(2, 10) + 1;
-  var terrain_array = [];
-  var roughness = 0.65;
-  var context = undefined;
-  var initial_displacement = 50;
+  <title>2D fractal terrain</title>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <script src="js/jquery-2.1.1.js"></script>
+  <script>
+    var array_size = Math.pow(2, 9) + 1;
+    var terrain_array = [];
+    var roughness = 0.55;
+    var initial_displacement = 50;
+    var count = 0;
 
-  $(function() {
-  	initializeArray();
-  	generateTerrain(0, array_size - 1, initial_displacement);
-  	drawTerrain();
-  });
+    $(function() {
+     initializeArray();
+     generateTerrain(0, array_size - 1, initial_displacement);
+     drawTerrain();
+   });
 
-  function drawTerrain() {
-    var canvas = $('#canvas');
-    context = canvas[0].getContext("2d");
-    
-    context.canvas.width  = $(window).width();
-    context.canvas.height = $(window).height();
-
-    var gradient = context.createLinearGradient(0,0,0,initial_displacement * 4);
-    gradient.addColorStop(0, "purple");
-    gradient.addColorStop(1, "#333");
-    context.strokeStyle = 'grey';
-    context.fillStyle = gradient;
-    context.beginPath();
-    context.lineWidth = 1;
-    context.moveTo(i, terrain_array[0] + 2 * initial_displacement);
-    for(var i = 1; i < array_size; i++) {
-      context.lineTo(i, terrain_array[i] + 2 * initial_displacement);
+    function initializeArray() {
+      for(var i = 0; i < array_size; i++) {
+        terrain_array.push(0);
+      }
     }
-    context.lineTo(i, 4 * initial_displacement);
-    context.lineTo(0, 4 * initial_displacement);
-    context.closePath();
-    context.stroke();
-    context.fill();
-  }
 
-  function initializeArray() {
-  	for(var i = 0; i < array_size; i++) {
-  		terrain_array.push(0);
-  	}
-  }
+    function generateTerrain(leftIndex, rightIndex, displacement) {
+      if((leftIndex + 1) == rightIndex) return;
+      var midIndex = Math.floor((leftIndex + rightIndex) / 2);
+      var change = (Math.random() * 2 - 1) * displacement;
+      terrain_array[midIndex] = (terrain_array[leftIndex] + terrain_array[rightIndex]) / 2 + change;
 
-  function generateTerrain(leftIndex, rightIndex, displacement) {
-  	if((leftIndex + 1) == rightIndex) return;
-  	var midIndex = Math.floor((leftIndex + rightIndex) / 2);
-  	var change = (Math.random() * 2 - 1) * displacement;
-  	terrain_array[midIndex] = (terrain_array[leftIndex] + terrain_array[rightIndex]) / 2 + change;
+      displacement = displacement * roughness;
+      generateTerrain(leftIndex, midIndex, displacement);
+      generateTerrain(midIndex, rightIndex, displacement);
+    }
 
-  	// recurse
-  	displacement = displacement * roughness;
-  	generateTerrain(leftIndex, midIndex, displacement);
-  	generateTerrain(midIndex, rightIndex, displacement);
-  }
-</script>
+    function drawTerrain() {
+      var canvas = $('#canvas');
+      canvas.width(array_size);
+      canvas.height(4 * initial_displacement);
+
+      var context = canvas[0].getContext("2d");
+      context.canvas.width  = canvas.width();
+      context.canvas.height = canvas.height();
+
+      context.fillStyle = "black";
+      context.fillRect(0, 0, canvas.width(), canvas.height());
+
+      var gradient = context.createLinearGradient(0,0,0,initial_displacement * 4);
+      gradient.addColorStop(0, "purple");
+      gradient.addColorStop(1, "#333");
+      context.strokeStyle = 'grey';
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.lineWidth = 0.5;
+      context.moveTo(i, terrain_array[count % array_size] + 2 * initial_displacement);
+      for(var i = 1; i < array_size; i++) {
+        context.lineTo(i, terrain_array[(count + i) % array_size] + 2 * initial_displacement);
+      }
+      context.lineTo(i, 4 * initial_displacement);
+      context.lineTo(0, 4 * initial_displacement);
+      context.closePath();
+
+      context.fill();
+      context.stroke();
+
+      count++;
+      setTimeout(drawTerrain, 30);
+    }
+  </script>
 </head>
 <body>
   <canvas id="canvas"></canvas>
 </body>
 </html>
+
+
